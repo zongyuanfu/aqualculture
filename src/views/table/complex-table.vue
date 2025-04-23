@@ -35,67 +35,62 @@
       style="width: 100%;"
       @sort-change="sortChange"
     >
-      <el-table-column label="ID" prop="id" sortable="custom" align="center" width="80" :class-name="getSortClass('id')">
+      <el-table-column label="设备ID" prop="id" sortable="custom" align="center" width="100" :class-name="getSortClass('id')">
         <template slot-scope="{row}">
           <span>{{ row.id }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="Date" width="150px" align="center">
+      <el-table-column label="数据更新时间" width="150px" align="center">
         <template slot-scope="{row}">
           <span>{{ row.timestamp | parseTime('{y}-{m}-{d} {h}:{i}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="Title" min-width="150px">
+      <el-table-column label="设备名称" min-width="150px">
         <template slot-scope="{row}">
           <span class="link-type" @click="handleUpdate(row)">{{ row.title }}</span>
           <el-tag>{{ row.type | typeFilter }}</el-tag>
         </template>
-      </el-table-column>
-      <el-table-column label="Author" width="110px" align="center">
-        <template slot-scope="{row}">
-          <span>{{ row.author }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column v-if="showReviewer" label="Reviewer" width="110px" align="center">
-        <template slot-scope="{row}">
-          <span style="color:red;">{{ row.reviewer }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="Imp" width="80px">
-        <template slot-scope="{row}">
-          <svg-icon v-for="n in + row.importance" :key="n" icon-class="star" class="meta-item__icon" />
-        </template>
-      </el-table-column>
-      <el-table-column label="Readings" align="center" width="95">
-        <template slot-scope="{row}">
-          <span v-if="row.pageviews" class="link-type" @click="handleFetchPv(row.pageviews)">{{ row.pageviews }}</span>
-          <span v-else>0</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="Status" class-name="status-col" width="100">
-        <template slot-scope="{row}">
-          <el-tag :type="row.status | statusFilter">
-            {{ row.status }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="Actions" align="center" width="230" class-name="small-padding fixed-width">
-        <template slot-scope="{row,$index}">
-          <el-button type="primary" size="mini" @click="handleUpdate(row)">
-            Edit
-          </el-button>
-          <el-button v-if="row.status!='published'" size="mini" type="success" @click="handleModifyStatus(row,'published')">
-            Publish
-          </el-button>
-          <el-button v-if="row.status!='draft'" size="mini" @click="handleModifyStatus(row,'draft')">
-            Draft
-          </el-button>
-          <el-button v-if="row.status!='deleted'" size="mini" type="danger" @click="handleDelete(row,$index)">
-            Delete
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+
+        <el-table-column v-if="showReviewer" label="Reviewer" width="110px" align="center">
+          <template slot-scope="{row}">
+            <span style="color:red;">{{ row.reviewer }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="Imp" width="80px">
+          <template slot-scope="{row}">
+            <svg-icon v-for="n in + row.importance" :key="n" icon-class="star" class="meta-item__icon" />
+          </template>r
+        </el-table-column>
+        <el-table-column label="Readings" align="center" width="95">
+          <template slot-scope="{row}">
+            <span v-if="row.pageviews" class="link-type" @click="handleFetchPv(row.pageviews)">{{ row.pageviews }}</span>
+            <span v-else>0</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="Status" class-name="status-col" width="100">
+          <template slot-scope="{row}">
+            <el-tag :type="row.status | statusFilter">
+              {{ row.status }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="Actions" align="center" width="230" class-name="small-padding fixed-width">
+          <template slot-scope="{row,$index}">
+            <el-button type="primary" size="mini" @click="handleUpdate(row)">
+              Edit
+            </el-button>
+            <el-button v-if="row.status!='published'" size="mini" type="success" @click="handleModifyStatus(row,'published')">
+              Publish
+            </el-button>
+            <el-button v-if="row.status!='draft'" size="mini" @click="handleModifyStatus(row,'draft')">
+              Draft
+            </el-button>
+            <el-button v-if="row.status!='deleted'" size="mini" type="danger" @click="handleDelete(row,$index)">
+              Delete
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table-column></el-table>
 
     <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="getList" />
 
@@ -153,10 +148,9 @@ import { parseTime } from '@/utils'
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 
 const calendarTypeOptions = [
-  { key: 'CN', display_name: 'China' },
-  { key: 'US', display_name: 'USA' },
-  { key: 'JP', display_name: 'Japan' },
-  { key: 'EU', display_name: 'Eurozone' }
+  { key: 'PLC', display_name: 'PLC' },
+  { key: '传感器', display_name: '传感器' },
+  { key: '执行器', display_name: '执行器' }
 ]
 
 // arr to obj, such as { CN : "China", US : "USA" }
