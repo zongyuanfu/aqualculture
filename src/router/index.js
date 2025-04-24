@@ -107,7 +107,7 @@ export const asyncRoutes = [
   {
     path: '/permission',
     component: Layout,
-    redirect: '/permission/page',
+    redirect: '/permission/role',
     // alwaysShow: true, // will always show the root menu
     name: 'Permission',
     meta: {
@@ -134,29 +134,67 @@ export const asyncRoutes = [
   //  nestedRouter,
   // tableRouter,
   {
-    path: '/table',
+    path: '/device',
     component: Layout,
-    redirect: '/table/complex-table',
-    name: 'Table',
+    redirect: '/device/detail',
+    name: 'device',
     meta: {
-      title: 'Table',
+      title: '设备管理',
       icon: 'table'
     },
     children: [
 
       {
-        path: 'complex-table',
-        component: () => import('@/views/table/complex-table'),
-        name: 'ComplexTable',
+        path: 'detail',
+        component: () => import('@/views/device/detail'),
+        name: 'device_detail',
         meta: { title: '设备信息管理' }
       }
     ]
   },
   {
-    path: '/example',
+    path: '/water',
     component: Layout,
-    redirect: '/example/list',
-    name: 'Example',
+    redirect: '/water/detail',
+    name: 'water',
+    meta: {
+      title: '水质信息',
+      icon: 'chart'
+    },
+    children: [
+
+      {
+        path: 'detail',
+        component: () => import('@/views/water/detail'),
+        name: 'water_detail',
+        meta: { title: '水质信息管理' }
+      }
+    ]
+  },
+  {
+    path: '/goods',
+    component: Layout,
+    redirect: '/goods/detail',
+    name: 'goods',
+    meta: {
+      title: '库存管理',
+      icon: 'el-icon-s-order'
+    },
+    children: [
+
+      {
+        path: 'detail',
+        component: () => import('@/views/goods/detail'),
+        name: 'ComplexTable',
+        meta: { title: '库存信息管理' }
+      }
+    ]
+  },
+  {
+    path: '/log',
+    component: Layout,
+    redirect: '/log/list',
+    name: 'log',
     meta: {
       title: '日志管理',
       icon: 'el-icon-s-help'
@@ -164,21 +202,21 @@ export const asyncRoutes = [
     children: [
       {
         path: 'list',
-        component: () => import('@/views/example/list'),
+        component: () => import('@/views/log/list'),
         name: 'ArticleList',
         meta: { title: '养殖日志列表', icon: 'list' }
       },
       {
         path: 'create',
-        component: () => import('@/views/example/create'),
+        component: () => import('@/views/log/create'),
         name: 'CreateArticle',
         meta: { title: '新增管理日志', icon: 'edit' }
       },
       {
         path: 'edit/:id(\\d+)',
-        component: () => import('@/views/example/edit'),
+        component: () => import('@/views/log/edit'),
         name: 'EditArticle',
-        meta: { title: '日志编辑', noCache: true, activeMenu: '/example/list' },
+        meta: { title: '日志编辑', noCache: true, activeMenu: '/log/list' },
         hidden: true
       }
 
