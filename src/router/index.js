@@ -196,30 +196,29 @@ export const asyncRoutes = [
     redirect: '/log/list',
     name: 'log',
     meta: {
-      title: '日志管理',
-      icon: 'el-icon-s-help'
+      title: '养殖日志',
+      icon: 'documentation'
     },
     children: [
       {
         path: 'list',
         component: () => import('@/views/log/list'),
-        name: 'ArticleList',
-        meta: { title: '养殖日志列表', icon: 'list' }
+        name: 'LogList',
+        meta: { title: '日志列表', icon: 'list' }
       },
       {
         path: 'create',
         component: () => import('@/views/log/create'),
-        name: 'CreateArticle',
-        meta: { title: '新增管理日志', icon: 'edit' }
+        name: 'CreateLog',
+        meta: { title: '新建日志', icon: 'edit' }
       },
       {
         path: 'edit/:id(\\d+)',
         component: () => import('@/views/log/edit'),
-        name: 'EditArticle',
-        meta: { title: '日志编辑', noCache: true, activeMenu: '/log/list' },
+        name: 'EditLog',
+        meta: { title: '编辑日志', noCache: true, activeMenu: '/log/list' },
         hidden: true
       }
-
     ]
   },
 

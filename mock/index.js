@@ -8,6 +8,7 @@ const search = require('./remote-search')
 const water = require('./water')
 const device = require('./device')
 const warehouse = require('./warehouse')
+const log = require('./log')
 const mocks = [
   ...user,
   ...role,
@@ -15,7 +16,8 @@ const mocks = [
   ...search,
   ...water,
   ...device,
-  ...warehouse
+  ...warehouse,
+  ...log
 ]
 
 // for front mock

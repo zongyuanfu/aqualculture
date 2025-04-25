@@ -6,7 +6,7 @@
 import ArticleDetail from './components/ArticleDetail'
 
 export default {
-  name: 'CreateArticle',
+  name: 'CreateLog',
   components: { ArticleDetail }
 }
 </script>
