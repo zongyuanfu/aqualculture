@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export function fetchList(query) {
   return request({
-    url: '/vue-element-admin/water/list',
+    url: '/api/water/list',
     method: 'get',
     params: query
   })
@@ -10,7 +10,7 @@ export function fetchList(query) {
 
 export function createItem(data) {
   return request({
-    url: '/vue-element-admin/water/create',
+    url: '/api/water/create',
     method: 'post',
     data
   })
@@ -18,7 +18,7 @@ export function createItem(data) {
 
 export function updateItem(data) {
   return request({
-    url: '/vue-element-admin/water/update',
+    url: '/api/water/update',
     method: 'post',
     data
   })
@@ -26,7 +26,7 @@ export function updateItem(data) {
 
 export function deleteItem(id) {
   return request({
-    url: '/vue-element-admin/water/delete',
+    url: '/api/water/delete',
     method: 'post',
     params: { id }
   })

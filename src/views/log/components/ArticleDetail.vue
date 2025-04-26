@@ -49,7 +49,7 @@
 
         <el-form-item prop="content" style="margin-bottom: 30px;">
           <div class="editor-label">报告内容：</div>
-          <Tinymce ref="editor" v-model="postForm.content" :height="400" />
+          <Tinymce ref="editor" v-model="postForm.content" :height="400" :toolbar="simpleToolbar" :menubar="'format table'" />
         </el-form-item>
       </div>
     </el-form>

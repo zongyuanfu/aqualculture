@@ -1,43 +1,68 @@
 const Mock = require('mockjs')
 
 const List = []
-const count = 50
+const count = 100
 
+// 生成按时间顺序排列的日期数组（2025年）
+const generateOrderedDates = (count) => {
+  const startDate = new Date('2025-01-01').getTime()
+  const endDate = new Date('2025-12-31').getTime()
+  const step = (endDate - startDate) / (count - 1)
+
+  return Array.from({ length: count }, (_, i) => {
+    const date = new Date(startDate + i * step)
+    return date.getTime()
+  })
+}
+
+const orderedDates = generateOrderedDates(count)
+
+// 生成更真实的水质数据范围
 for (let i = 0; i < count; i++) {
-  List.push(Mock.mock({
-    id: '@increment',
-    timestamp: +Mock.Random.date('T'),
-    oxygen: '@float(4, 12, 1, 2)',
-    ph: '@float(6, 9, 1, 2)',
-    cod: '@float(10, 100, 1, 1)',
-    conductivity: '@float(200, 800, 1, 1)',
-    chlorine: '@float(0.2, 2.0, 1, 2)',
-    nh3: '@float(0.1, 5.0, 1, 2)',
-    turbidity: '@float(0, 10, 1, 2)'
-  }))
+  List.push({
+    id: i + 1,
+    timestamp: orderedDates[i],
+    // 溶解氧（mg/L）：4-8是比较理想的范围
+    oxygen: Mock.mock('@float(4, 8, 1, 2)'),
+    // pH值：6.5-8.5是最适合养殖的范围
+    ph: Mock.mock('@float(6.5, 8.5, 1, 2)'),
+    // 水温（°C）：22-28是理想范围
+    temperature: Mock.mock('@float(22, 28, 1, 1)'),
+    // COD（mg/L）：20-40是较好的范围
+    cod: Mock.mock('@float(20, 40, 1, 1)'),
+    // 电导率（μS/cm）：200-400是淡水养殖的理想范围
+    conductivity: Mock.mock('@float(200, 400, 1, 1)'),
+    // 余氯（mg/L）：0.2-0.5是安全范围
+    chlorine: Mock.mock('@float(0.2, 0.5, 1, 2)'),
+    // 氨氮（mg/L）：0.2-1.0是安全范围
+    nh3: Mock.mock('@float(0.2, 1.0, 1, 2)'),
+    // 浊度（NTU）：5-10是可接受范围
+    turbidity: Mock.mock('@float(5, 10, 1, 2)')
+  })
 }
 
 module.exports = [
   {
-    url: '/vue-element-admin/water/list',
+    url: '/api/water/list',
     type: 'get',
     response: config => {
       const { dateRange, page = 1, limit = 20, sort } = config.query
 
-      let mockList = List.filter(item => {
-        if (dateRange && dateRange.length === 2) {
+      let mockList = [...List] // 保持原始顺序
+
+      if (dateRange && dateRange.length === 2) {
+        mockList = mockList.filter(item => {
           const startTime = new Date(dateRange[0]).getTime()
           const endTime = new Date(dateRange[1]).getTime()
-          if (item.timestamp < startTime || item.timestamp > endTime) return false
-        }
-        return true
-      })
+          return item.timestamp >= startTime && item.timestamp <= endTime
+        })
+      }
 
       if (sort === '-id') {
         mockList = mockList.reverse()
       }
 
-      const pageList = mockList.filter((item, index) => index < limit * page && index >= limit * (page - 1))
+      const pageList = mockList.slice((page - 1) * limit, page * limit)
 
       return {
         code: 20000,
@@ -50,9 +75,19 @@ module.exports = [
   },
 
   {
-    url: '/vue-element-admin/water/create',
+    url: '/api/water/create',
     type: 'post',
-    response: _ => {
+    response: config => {
+      const data = config.body
+      data.id = List.length + 1
+
+      // 新记录的时间设置为当前最后一条记录的时间+1小时
+      const lastDate = new Date(List[List.length - 1].timestamp)
+      lastDate.setHours(lastDate.getHours() + 1)
+      data.timestamp = lastDate.getTime()
+
+      List.push(data)
+
       return {
         code: 20000,
         data: 'success'
@@ -61,9 +96,28 @@ module.exports = [
   },
 
   {
-    url: '/vue-element-admin/water/update',
+    url: '/api/water/update',
     type: 'post',
-    response: _ => {
+    response: config => {
+      const data = config.body
+      const index = List.findIndex(item => item.id === data.id)
+
+      if (index !== -1) {
+        // 保持时间顺序，不允许修改时间早于前一条记录或晚于后一条记录
+        const prevTime = index > 0 ? List[index - 1].timestamp : 0
+        const nextTime = index < List.length - 1 ? List[index + 1].timestamp : Infinity
+        const newTime = new Date(data.timestamp).getTime()
+
+        if (newTime >= prevTime && newTime <= nextTime) {
+          List[index] = { ...List[index], ...data }
+        } else {
+          return {
+            code: 40000,
+            message: '修改后的时间必须介于前后记录时间之间'
+          }
+        }
+      }
+
       return {
         code: 20000,
         data: 'success'
@@ -72,9 +126,16 @@ module.exports = [
   },
 
   {
-    url: '/vue-element-admin/water/delete',
+    url: '/api/water/delete',
     type: 'post',
-    response: _ => {
+    response: config => {
+      const { id } = config.params
+      const index = List.findIndex(item => item.id === id)
+
+      if (index !== -1) {
+        List.splice(index, 1)
+      }
+
       return {
         code: 20000,
         data: 'success'
