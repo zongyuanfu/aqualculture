@@ -23,6 +23,7 @@
           :value="item.key"
         />
       </el-select>
+
       <el-select
         v-model="listQuery.status"
         placeholder="设备状态"
@@ -33,10 +34,11 @@
         <el-option
           v-for="item in statusOptions"
           :key="item"
-          :label="item"
+          :label="statusText(item)"
           :value="item"
         />
       </el-select>
+
       <el-select
         v-model="listQuery.sort"
         style="width: 140px"
@@ -50,7 +52,7 @@
           :value="item.key"
         />
       </el-select>
-      <!-- 删除冗余的英文筛选组件，保留中文版本 -->
+
       <el-button
         v-waves
         class="filter-item"
@@ -126,7 +128,7 @@
         align="center"
       >
         <template #default="{ row }">
-          <el-tag :type="row.status | statusFilter">{{ row.status }}</el-tag>
+          <el-tag :type="row.status | statusFilter">{{ statusText(row.status) }}</el-tag>
         </template>
       </el-table-column>
 
@@ -157,24 +159,24 @@
         class-name="small-padding fixed-width"
       >
         <template #default="{ row, $index }">
-          <el-button type="primary" size="mini" @click="handleUpdate(row)">编辑</el-button>
           <el-button
-            v-if="row.status !== 'online'"
+            type="primary"
             size="mini"
-            type="success"
-            @click="handleModifyStatus(row, 'online')"
-          >上线</el-button>
-          <el-button
-            v-if="row.status !== 'offline'"
-            size="mini"
-            @click="handleModifyStatus(row, 'offline')"
-          >下线</el-button>
-          <el-button
-            v-if="row.status !== 'fault'"
-            size="mini"
-            type="warning"
-            @click="handleModifyStatus(row, 'fault')"
-          >故障</el-button>
+            style="margin-right:6px;"
+            @click="handleUpdate(row)"
+          >编辑</el-button>
+
+          <el-dropdown style="margin-right:6px;" @command="(command) => handleModifyStatus(row, command)">
+            <el-button size="mini" :type="row.status | statusTypeFilter">
+              {{ statusText(row.status) }}<i class="el-icon-arrow-down el-icon--right" />
+            </el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item v-if="row.status !== 'online'" command="online">上线</el-dropdown-item>
+              <el-dropdown-item v-if="row.status !== 'offline'" command="offline">下线</el-dropdown-item>
+              <el-dropdown-item v-if="row.status !== 'fault'" command="fault">故障</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+
           <el-button
             size="mini"
             type="danger"
@@ -226,7 +228,7 @@
             <el-option
               v-for="item in statusOptions"
               :key="item"
-              :label="item"
+              :label="statusText(item)"
               :value="item"
             />
           </el-select>
@@ -282,7 +284,11 @@ const calendarTypeOptions = [
   { key: '传感器', display_name: '传感器' },
   { key: '机器人', display_name: '机器人' }
 ]
-
+const statusTextMap = {
+  online: '上线',
+  offline: '下线',
+  fault: '故障'
+}
 const calendarTypeKeyValue = calendarTypeOptions.reduce((acc, cur) => {
   acc[cur.key] = cur.display_name
   return acc
@@ -294,12 +300,12 @@ export default {
   directives: { waves },
   filters: {
     statusFilter(status) {
-      const statusMap = {
-        online: 'success',
-        offline: 'info',
-        fault: 'danger'
-      }
+      const statusMap = { online: 'success', offline: 'info', fault: 'danger' }
       return statusMap[status]
+    },
+    statusTypeFilter(status) {
+      const statusTypeMap = { online: 'success', offline: 'info', fault: 'warning' }
+      return statusTypeMap[status]
     },
     typeFilter(type) {
       return calendarTypeKeyValue[type]
@@ -311,34 +317,17 @@ export default {
       list: [],
       total: 0,
       listLoading: true,
-      listQuery: {
-        page: 1,
-        limit: 20,
-        name: undefined,
-        type: undefined,
-        status: undefined,
-        sort: '+id'
-      },
+      listQuery: { page: 1, limit: 20, name: '', type: undefined, status: undefined, sort: '+id' },
       calendarTypeOptions,
       sortOptions: [
         { label: 'ID 升序', key: '+id' },
         { label: 'ID 降序', key: '-id' }
       ],
       statusOptions: ['online', 'offline', 'fault'],
-      temp: {
-        id: undefined,
-        name: '',
-        type: '',
-        status: 'offline',
-        last_data: '',
-        created_at: new Date()
-      },
+      temp: { id: undefined, name: '', type: '', status: 'offline', last_data: '', created_at: new Date() },
       dialogFormVisible: false,
       dialogStatus: '',
-      textMap: {
-        update: '编辑',
-        create: '创建'
-      },
+      textMap: { update: '编辑', create: '创建' },
       dialogPvVisible: false,
       pvData: [],
       rules: {
@@ -353,11 +342,14 @@ export default {
     this.getList()
   },
   methods: {
+    statusText(status) {
+      return statusTextMap[status] || status
+    },
     getList() {
       this.listLoading = true
-      fetchList(this.listQuery).then(response => {
-        this.list = response.data.items
-        this.total = response.data.total
+      fetchList(this.listQuery).then(res => {
+        this.list = res.data.items
+        this.total = res.data.total
         this.listLoading = false
       })
     },
@@ -376,32 +368,23 @@ export default {
       }
     },
     resetTemp() {
-      this.temp = {
-        id: undefined,
-        name: '',
-        type: '',
-        status: 'offline',
-        last_data: '',
-        created_at: new Date()
-      }
+      this.temp = { id: undefined, name: '', type: '', status: 'offline', last_data: '', created_at: new Date() }
     },
     handleCreate() {
       this.resetTemp()
       this.dialogStatus = 'create'
       this.dialogFormVisible = true
-      this.$nextTick(() => {
-        this.$refs.dataForm.clearValidate()
-      })
+      this.$nextTick(() => this.$refs.dataForm.clearValidate())
     },
     createData() {
       this.$refs.dataForm.validate(valid => {
         if (valid) {
-          this.temp.id = Math.floor(Math.random() * 100) + 1024
+          this.temp.id = Math.floor(Math.random() * 1000) + 1000
           this.temp.created_at = new Date()
           createDevice(this.temp).then(() => {
             this.list.unshift(this.temp)
             this.dialogFormVisible = false
-            this.$notify({ title: '成功', message: '创建成功', type: 'success', duration: 2000 })
+            this.$notify({ title: '成功', message: '创建成功', type: 'success' })
           })
         }
       })
@@ -410,9 +393,7 @@ export default {
       this.temp = { ...row }
       this.dialogStatus = 'update'
       this.dialogFormVisible = true
-      this.$nextTick(() => {
-        this.$refs.dataForm.clearValidate()
-      })
+      this.$nextTick(() => this.$refs.dataForm.clearValidate())
     },
     updateData() {
       this.$refs.dataForm.validate(valid => {
@@ -421,18 +402,18 @@ export default {
             const idx = this.list.findIndex(v => v.id === this.temp.id)
             this.$set(this.list, idx, this.temp)
             this.dialogFormVisible = false
-            this.$notify({ title: '成功', message: '更新成功', type: 'success', duration: 2000 })
+            this.$notify({ title: '成功', message: '更新成功', type: 'success' })
           })
         }
       })
     },
-    handleDelete(row, index) {
-      this.list.splice(index, 1)
-      this.$notify({ title: '成功', message: '删除成功', type: 'success', duration: 2000 })
+    handleDelete(row, idx) {
+      this.list.splice(idx, 1)
+      this.$notify({ title: '成功', message: '删除成功', type: 'success' })
     },
     handleFetchPv(pv) {
-      fetchPv(pv).then(response => {
-        this.pvData = response.data.pvData
+      fetchPv(pv).then(res => {
+        this.pvData = res.data.pvData
         this.dialogPvVisible = true
       })
     },
@@ -441,9 +422,7 @@ export default {
       import('@/vendor/Export2Excel').then(excel => {
         const tHeader = ['ID', '设备名称', '设备类型', '当前状态', '最近接收数据', '创建时间']
         const filterVal = ['id', 'name', 'type', 'status', 'last_data', 'created_at']
-        const data = this.list.map(v => filterVal.map(j =>
-          j === 'created_at' ? parseTime(v[j]) : v[j]
-        ))
+        const data = this.list.map(v => filterVal.map(k => k === 'created_at' ? parseTime(v[k]) : v[k]))
         excel.export_json_to_excel({ header: tHeader, data, filename: '设备管理列表' })
         this.downloadLoading = false
       })

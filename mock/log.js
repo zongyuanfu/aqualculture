@@ -31,9 +31,9 @@ for (let i = 0; i < count; i++) {
 }
 
 module.exports = [
-  // 获取日志列表
+  // 获取日志列表 - RESTful: GET /api/logs/
   {
-    url: '/vue-element-admin/log/list',
+    url: '/api/logs/',
     type: 'get',
     response: config => {
       const { title, page = 1, limit = 20 } = config.query
@@ -58,14 +58,14 @@ module.exports = [
     }
   },
 
-  // 获取日志详情
+  // 获取日志详情 - RESTful: GET /api/logs/:id/
   {
-    url: '/vue-element-admin/log/detail',
+    url: '/api/logs/[0-9]+/',
     type: 'get',
     response: config => {
-      const { id } = config.query
+      const id = parseInt(config.url.match(/\/api\/logs\/(\d+)\//)[1])
       for (const log of List) {
-        if (log.id === +id) {
+        if (log.id === id) {
           return {
             code: 20000,
             data: log
@@ -79,9 +79,9 @@ module.exports = [
     }
   },
 
-  // 创建日志
+  // 创建日志 - RESTful: POST /api/logs/
   {
-    url: '/vue-element-admin/log/create',
+    url: '/api/logs/',
     type: 'post',
     response: config => {
       const data = config.body
@@ -101,13 +101,14 @@ module.exports = [
     }
   },
 
-  // 更新日志
+  // 更新日志 - RESTful: PUT /api/logs/:id/
   {
-    url: '/vue-element-admin/log/update',
-    type: 'post',
+    url: '/api/logs/[0-9]+/',
+    type: 'put',
     response: config => {
+      const id = parseInt(config.url.match(/\/api\/logs\/(\d+)\//)[1])
       const data = config.body
-      const index = List.findIndex(item => item.id === data.id)
+      const index = List.findIndex(item => item.id === id)
 
       if (index !== -1) {
         // 保留创建时间
@@ -128,13 +129,13 @@ module.exports = [
     }
   },
 
-  // 删除日志
+  // 删除日志 - RESTful: DELETE /api/logs/:id/
   {
-    url: '/vue-element-admin/log/delete',
-    type: 'post',
+    url: '/api/logs/[0-9]+/',
+    type: 'delete',
     response: config => {
-      const { id } = config.params
-      const index = List.findIndex(item => item.id === +id)
+      const id = parseInt(config.url.match(/\/api\/logs\/(\d+)\//)[1])
+      const index = List.findIndex(item => item.id === id)
 
       if (index !== -1) {
         List.splice(index, 1)
@@ -147,9 +148,9 @@ module.exports = [
     }
   },
 
-  // 获取操作员列表
+  // 获取操作员列表 - RESTful: GET /api/users/
   {
-    url: '/vue-element-admin/users/list',
+    url: '/api/users/',
     type: 'get',
     response: () => {
       return {

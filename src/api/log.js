@@ -1,8 +1,9 @@
 import request from '@/utils/request'
 
+// 符合RESTful风格的API接口
 export function fetchLogList(query) {
   return request({
-    url: '/vue-element-admin/log/list',
+    url: '/api/logs/',
     method: 'get',
     params: query
   })
@@ -10,15 +11,14 @@ export function fetchLogList(query) {
 
 export function fetchLog(id) {
   return request({
-    url: '/vue-element-admin/log/detail',
-    method: 'get',
-    params: { id }
+    url: `/api/logs/${id}/`,
+    method: 'get'
   })
 }
 
 export function createLog(data) {
   return request({
-    url: '/vue-element-admin/log/create',
+    url: '/api/logs/',
     method: 'post',
     data
   })
@@ -26,23 +26,22 @@ export function createLog(data) {
 
 export function updateLog(data) {
   return request({
-    url: '/vue-element-admin/log/update',
-    method: 'post',
+    url: `/api/logs/${data.id}/`,
+    method: 'put',
     data
   })
 }
 
 export function deleteLog(id) {
   return request({
-    url: '/vue-element-admin/log/delete',
-    method: 'post',
-    params: { id }
+    url: `/api/logs/${id}/`,
+    method: 'delete'
   })
 }
 
 export function fetchOperators() {
   return request({
-    url: '/vue-element-admin/users/list',
+    url: '/api/users/',
     method: 'get'
   })
 }

@@ -50,25 +50,37 @@ for (let i = 0; i < count; i++) {
 
 module.exports = [
   {
+    url: '/api/warehouse-items/',
+    type: 'get',
+    response() {
+      return {
+        code: 20000,
+        data: itemNames
+      }
+    }
+  },
+  {
     url: '/api/warehouse-records/',
     type: 'get',
-    response(config) {
-      const { page = 1, page_size = 20, start_date, end_date } = config.query
+    response: config => {
+      const { dateRange, page = 1, limit = 20, sort } = config.query
 
       let mockList = [...List] // 保持原始顺序
 
-      // 如果需要按时间倒序返回，可以取消下面这行注释
-      // mockList = [...List].reverse()
-
-      if (start_date || end_date) {
+      if (dateRange && dateRange.length === 2) {
         mockList = mockList.filter(item => {
-          if (start_date && item.timestamp < start_date) return false
-          if (end_date && item.timestamp > end_date) return false
-          return true
+          const startTime = new Date(dateRange[0]).getTime()
+          const endTime = new Date(dateRange[1]).getTime()
+          const itemTime = new Date(item.timestamp).getTime()
+          return itemTime >= startTime && itemTime <= endTime
         })
       }
 
-      const pageList = mockList.slice((page - 1) * page_size, page * page_size)
+      if (sort === '-id') {
+        mockList = mockList.reverse()
+      }
+
+      const pageList = mockList.slice((page - 1) * limit, page * limit)
 
       return {
         code: 20000,
@@ -83,8 +95,8 @@ module.exports = [
   {
     url: '/api/warehouse-records/',
     type: 'post',
-    response(config) {
-      const data = JSON.parse(config.body)
+    response: config => {
+      const data = config.body
       data.id = List.length + 1
 
       // 新记录的时间设置为当前最后一条记录的时间+1小时
@@ -92,21 +104,34 @@ module.exports = [
       lastDate.setHours(lastDate.getHours() + 1)
       data.timestamp = lastDate.toISOString().replace('T', ' ').substring(0, 19)
 
-      List.push(data) // 添加到末尾保持时间顺序
+      // 验证RFID编码唯一性
+      const existingRfid = List.find(item => item.rfid_code === data.rfid_code)
+      if (existingRfid) {
+        return {
+          code: 40001,
+          message: 'RFID编码已存在，请使用其他编码'
+        }
+      }
+
+      List.push(data)
 
       return {
         code: 20000,
-        data: data
+        data: 'success'
       }
     }
   },
 
+  // 修正mock接口路径匹配问题
   {
-    url: /\/api\/warehouse-records\/\d+/,
+    url: '/api/warehouse-records/\\d+/?',
     type: 'put',
-    response(config) {
-      const data = JSON.parse(config.body)
-      const index = List.findIndex(item => item.id === data.id)
+    response: config => {
+      const url = config.url
+      const id = parseInt(url.match(/\/api\/warehouse-records\/(\d+)/)[1])
+      const data = config.body
+      const index = List.findIndex(item => item.id === id)
+
       if (index !== -1) {
         // 保持时间顺序，不允许修改时间早于前一条记录或晚于后一条记录
         const prevTime = index > 0 ? new Date(List[index - 1].timestamp).getTime() : 0
@@ -114,7 +139,16 @@ module.exports = [
         const newTime = new Date(data.timestamp).getTime()
 
         if (newTime >= prevTime && newTime <= nextTime) {
-          List[index] = data
+          // 验证RFID编码唯一性（排除当前记录）
+          const existingRfid = List.find(item => item.rfid_code === data.rfid_code && item.id !== data.id)
+          if (existingRfid) {
+            return {
+              code: 40001,
+              message: 'RFID编码已存在，请使用其他编码'
+            }
+          }
+
+          List[index] = { ...List[index], ...data }
         } else {
           return {
             code: 40000,
@@ -122,22 +156,26 @@ module.exports = [
           }
         }
       }
+
       return {
         code: 20000,
-        data: data
+        data: 'success'
       }
     }
   },
 
   {
-    url: /\/api\/warehouse-records\/\d+/,
+    url: '/api/warehouse-records/\d+',
     type: 'delete',
-    response(config) {
-      const id = parseInt(config.url.split('/').pop())
+    response: config => {
+      const url = config.url
+      const id = parseInt(url.match(/\/api\/warehouse-records\/(\d+)/)[1])
       const index = List.findIndex(item => item.id === id)
+
       if (index !== -1) {
         List.splice(index, 1)
       }
+
       return {
         code: 20000,
         data: 'success'

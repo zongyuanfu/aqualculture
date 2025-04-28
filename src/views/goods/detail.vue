@@ -152,6 +152,7 @@ export default {
     },
     createData() {
       this.$refs.dataForm.validate(valid => {
+        console.log('表单验证结果:', valid)
         if (valid) {
           createItem(this.temp).then(() => {
             this.getList()
@@ -166,13 +167,27 @@ export default {
       this.dialogStatus = 'update'
       this.dialogFormVisible = true
     },
+    // 确保表单提交后刷新数据
+    // 修正后的updateData方法
     updateData() {
       this.$refs.dataForm.validate(valid => {
         if (valid) {
+          console.log('开始提交表单数据', JSON.stringify(this.temp))
           updateItem(this.temp).then(() => {
             this.getList()
             this.dialogFormVisible = false
-            this.$notify({ title: '成功', message: '记录已更新', type: 'success' })
+            this.$notify({
+              title: '成功',
+              message: '记录已更新',
+              type: 'success',
+              duration: 2000
+            })
+          }).catch(() => {
+            this.$notify.error({
+              title: '错误',
+              message: '更新失败，请检查网络'
+            })
+            console.error('接口调用失败')
           })
         }
       })

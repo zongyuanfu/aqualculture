@@ -4,12 +4,7 @@ export function fetchList(query) {
   return request({
     url: '/api/warehouse-records/',
     method: 'get',
-    params: {
-      page: query.page,
-      page_size: query.limit,
-      start_date: query.dateRange ? query.dateRange[0] : undefined,
-      end_date: query.dateRange ? query.dateRange[1] : undefined
-    }
+    params: query
   })
 }
 
@@ -23,7 +18,7 @@ export function createItem(data) {
 
 export function updateItem(data) {
   return request({
-    url: `/api/warehouse-records/${data.id}/`,
+    url: `/api/warehouse-records/${data.id}/`, // 标准，带id
     method: 'put',
     data
   })

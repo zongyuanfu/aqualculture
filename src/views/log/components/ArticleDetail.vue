@@ -128,16 +128,51 @@ export default {
       })
     },
     fetchData(id) {
-      fetchLog(id).then(response => {
-        this.postForm = response.data
+      // 确保id存在且为数字
+      if (!id || isNaN(parseInt(id))) {
+        this.$notify({
+          title: '错误',
+          message: '无效的日志ID',
+          type: 'error',
+          duration: 2000
+        })
+        return
+      }
 
-        // 设置tagsview标题
-        this.setTagsViewTitle()
+      // 转换为数字类型
+      const numId = parseInt(id)
+      console.log('正在获取日志ID:', numId)
 
-        // 设置页面标题
-        this.setPageTitle()
+      fetchLog(numId).then(response => {
+        // 检查响应结构，处理可能的嵌套data情况
+        const logData = response.data && response.data.data ? response.data.data : response.data
+
+        if (logData) {
+          // 将API返回的数据赋值给表单
+          this.postForm = Object.assign({}, this.postForm, logData)
+          console.log('获取到日志数据:', this.postForm)
+
+          // 设置tagsview标题
+          this.setTagsViewTitle()
+
+          // 设置页面标题
+          this.setPageTitle()
+        } else {
+          this.$notify({
+            title: '警告',
+            message: '未找到日志数据',
+            type: 'warning',
+            duration: 2000
+          })
+        }
       }).catch(err => {
-        console.log(err)
+        console.log('获取日志详情错误:', err)
+        this.$notify({
+          title: '错误',
+          message: '获取日志详情失败',
+          type: 'error',
+          duration: 2000
+        })
       })
     },
     setTagsViewTitle() {
@@ -163,10 +198,17 @@ export default {
               duration: 2000
             })
             this.loading = false
-            this.$router.push('/log/list')
+            // 返回列表页并强制刷新列表数据
+            this.$router.push({ path: '/log/list', query: { refresh: new Date().getTime() }})
           }).catch(err => {
             console.log(err)
             this.loading = false
+            this.$notify({
+              title: '错误',
+              message: '提交失败',
+              type: 'error',
+              duration: 2000
+            })
           })
         } else {
           console.log('提交错误!')
@@ -182,6 +224,7 @@ export default {
         })
         return
       }
+      this.loading = true
       this.postForm.status = 'draft'
       const method = this.isEdit ? updateLog : createLog
       method(this.postForm).then(response => {
@@ -196,6 +239,12 @@ export default {
       }).catch(err => {
         console.log(err)
         this.loading = false
+        this.$notify({
+          title: '错误',
+          message: '保存草稿失败',
+          type: 'error',
+          duration: 2000
+        })
       })
     }
   }

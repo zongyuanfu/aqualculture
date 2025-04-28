@@ -103,6 +103,17 @@ export default {
       }
     }
   },
+  // 监听路由变化，处理从编辑页返回时的刷新
+  watch: {
+    '$route.query.refresh': {
+      handler(val) {
+        if (val) {
+          this.getList()
+        }
+      },
+      immediate: true
+    }
+  },
   created() {
     this.getList()
   },
