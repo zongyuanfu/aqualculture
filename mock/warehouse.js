@@ -30,7 +30,7 @@ const generateOrderedDates = (count) => {
 
   return Array.from({ length: count }, (_, i) => {
     const date = new Date(startDate + i * step)
-    return date.toISOString().replace('T', ' ').substring(0, 19)
+    return date.getTime()
   })
 }
 
@@ -49,8 +49,9 @@ for (let i = 0; i < count; i++) {
 }
 
 module.exports = [
+  // 获取仓库物品列表
   {
-    url: '/api/warehouse-items/',
+    url: '/api/warehouse/items',
     type: 'get',
     response() {
       return {
@@ -59,8 +60,10 @@ module.exports = [
       }
     }
   },
+
+  // 获取仓库记录列表
   {
-    url: '/api/warehouse-records/',
+    url: '/api/warehouse/list',
     type: 'get',
     response: config => {
       const { dateRange, page = 1, limit = 20, sort } = config.query
@@ -71,8 +74,7 @@ module.exports = [
         mockList = mockList.filter(item => {
           const startTime = new Date(dateRange[0]).getTime()
           const endTime = new Date(dateRange[1]).getTime()
-          const itemTime = new Date(item.timestamp).getTime()
-          return itemTime >= startTime && itemTime <= endTime
+          return item.timestamp >= startTime && item.timestamp <= endTime
         })
       }
 
@@ -92,8 +94,9 @@ module.exports = [
     }
   },
 
+  // 创建仓库记录
   {
-    url: '/api/warehouse-records/',
+    url: '/api/warehouse/create',
     type: 'post',
     response: config => {
       const data = config.body
@@ -102,7 +105,7 @@ module.exports = [
       // 新记录的时间设置为当前最后一条记录的时间+1小时
       const lastDate = new Date(List[List.length - 1].timestamp)
       lastDate.setHours(lastDate.getHours() + 1)
-      data.timestamp = lastDate.toISOString().replace('T', ' ').substring(0, 19)
+      data.timestamp = lastDate.getTime()
 
       // 验证RFID编码唯一性
       const existingRfid = List.find(item => item.rfid_code === data.rfid_code)
@@ -122,26 +125,27 @@ module.exports = [
     }
   },
 
-  // 修正mock接口路径匹配问题
+  // 更新仓库记录
   {
-    url: '/api/warehouse-records/\\d+/?',
+    url: '/api/warehouse/update/\\d+',
     type: 'put',
     response: config => {
-      const url = config.url
-      const id = parseInt(url.match(/\/api\/warehouse-records\/(\d+)/)[1])
+      const id = parseInt(config.url.match(/\/api\/warehouse\/update\/(\d+)/)[1])
       const data = config.body
+      console.log('接收到的更新请求数据:', data, '请求ID:', id) // 添加日志，帮助调试
       const index = List.findIndex(item => item.id === id)
 
       if (index !== -1) {
         // 保持时间顺序，不允许修改时间早于前一条记录或晚于后一条记录
-        const prevTime = index > 0 ? new Date(List[index - 1].timestamp).getTime() : 0
-        const nextTime = index < List.length - 1 ? new Date(List[index + 1].timestamp).getTime() : Infinity
+        const prevTime = index > 0 ? List[index - 1].timestamp : 0
+        const nextTime = index < List.length - 1 ? List[index + 1].timestamp : Infinity
         const newTime = new Date(data.timestamp).getTime()
 
         if (newTime >= prevTime && newTime <= nextTime) {
           // 验证RFID编码唯一性（排除当前记录）
           const existingRfid = List.find(item => item.rfid_code === data.rfid_code && item.id !== data.id)
           if (existingRfid) {
+            console.log('更新失败：RFID编码已存在') // 添加日志，记录失败原因
             return {
               code: 40001,
               message: 'RFID编码已存在，请使用其他编码'
@@ -149,11 +153,19 @@ module.exports = [
           }
 
           List[index] = { ...List[index], ...data }
+          console.log('更新成功，更新后的数据:', List[index]) // 添加日志，确认更新成功
         } else {
+          console.log('更新失败：时间范围错误') // 添加日志，记录失败原因
           return {
             code: 40000,
             message: '修改后的时间必须介于前后记录时间之间'
           }
+        }
+      } else {
+        console.log('更新失败：未找到ID为', id, '的记录') // 添加日志，记录失败原因
+        return {
+          code: 40001,
+          message: '未找到要更新的记录'
         }
       }
 
@@ -164,12 +176,12 @@ module.exports = [
     }
   },
 
+  // 删除仓库记录
   {
-    url: '/api/warehouse-records/\d+',
-    type: 'delete',
+    url: '/api/warehouse/delete',
+    type: 'post',
     response: config => {
-      const url = config.url
-      const id = parseInt(url.match(/\/api\/warehouse-records\/(\d+)/)[1])
+      const { id } = config.params
       const index = List.findIndex(item => item.id === id)
 
       if (index !== -1) {

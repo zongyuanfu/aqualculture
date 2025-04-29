@@ -4,10 +4,13 @@
 
       <sticky :z-index="10" :class-name="'sub-navbar '+postForm.status">
         <el-button v-loading="loading" style="margin-left: 10px;" type="success" @click="submitForm">
-          提交
+          发布
         </el-button>
         <el-button v-loading="loading" type="warning" @click="draftForm">
-          草稿
+          保存草稿
+        </el-button>
+        <el-button v-loading="loading" type="info" @click="cancelForm">
+          取消
         </el-button>
       </sticky>
 
@@ -39,7 +42,13 @@
 
                 <el-col :span="12">
                   <el-form-item label-width="120px" label="创建时间:" class="postInfo-container-item">
-                    <el-date-picker v-model="postForm.created_at" type="datetime" format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期和时间" />
+                    <el-date-picker
+                      v-model="postForm.created_at"
+                      type="datetime"
+                      format="yyyy-MM-dd HH:mm:ss"
+                      placeholder="选择日期和时间"
+                      :disabled="isEdit"
+                    />
                   </el-form-item>
                 </el-col>
               </el-row>
@@ -50,6 +59,13 @@
         <el-form-item prop="content" style="margin-bottom: 30px;">
           <div class="editor-label">报告内容：</div>
           <Tinymce ref="editor" v-model="postForm.content" :height="400" :toolbar="simpleToolbar" :menubar="'format table'" />
+        </el-form-item>
+
+        <el-form-item prop="status" label="状态" label-width="120px" style="margin-bottom: 30px;">
+          <el-radio-group v-model="postForm.status">
+            <el-radio label="published">发布</el-radio>
+            <el-radio label="draft">草稿</el-radio>
+          </el-radio-group>
         </el-form-item>
       </div>
     </el-form>
@@ -98,10 +114,11 @@ export default {
       postForm: Object.assign({}, defaultForm),
       loading: false,
       operatorOptions: [],
+      simpleToolbar: ['bold italic underline strikethrough | alignleft aligncenter alignright | formatselect fontselect fontsizeselect | forecolor backcolor | bullist numlist | image media link table | removeformat fullscreen'],
       rules: {
-        title: [{ validator: validateRequire }],
-        content: [{ validator: validateRequire }],
-        operator_id: [{ validator: validateRequire }]
+        title: [{ required: true, validator: validateRequire, trigger: 'blur' }],
+        content: [{ required: true, validator: validateRequire, trigger: 'blur' }],
+        operator_id: [{ required: true, validator: validateRequire, trigger: 'change' }]
       },
       tempRoute: {}
     }
@@ -113,6 +130,8 @@ export default {
     if (this.isEdit) {
       const id = this.$route.params && this.$route.params.id
       this.fetchData(id)
+    } else {
+      this.postForm = Object.assign({}, defaultForm)
     }
 
     // 为什么需要复制this.$route？
@@ -124,7 +143,13 @@ export default {
       fetchOperators().then(response => {
         this.operatorOptions = response.data
       }).catch(err => {
-        console.log(err)
+        console.error('获取操作员列表失败:', err)
+        this.$notify({
+          title: '错误',
+          message: '获取操作员列表失败',
+          type: 'error',
+          duration: 2000
+        })
       })
     },
     fetchData(id) {
@@ -141,7 +166,7 @@ export default {
 
       // 转换为数字类型
       const numId = parseInt(id)
-      console.log('正在获取日志ID:', numId)
+      this.loading = true
 
       fetchLog(numId).then(response => {
         // 检查响应结构，处理可能的嵌套data情况
@@ -150,7 +175,6 @@ export default {
         if (logData) {
           // 将API返回的数据赋值给表单
           this.postForm = Object.assign({}, this.postForm, logData)
-          console.log('获取到日志数据:', this.postForm)
 
           // 设置tagsview标题
           this.setTagsViewTitle()
@@ -165,24 +189,26 @@ export default {
             duration: 2000
           })
         }
+        this.loading = false
       }).catch(err => {
-        console.log('获取日志详情错误:', err)
+        console.error('获取日志详情错误:', err)
         this.$notify({
           title: '错误',
           message: '获取日志详情失败',
           type: 'error',
           duration: 2000
         })
+        this.loading = false
       })
     },
     setTagsViewTitle() {
       const title = this.isEdit ? '编辑日志' : '新建日志'
-      const route = Object.assign({}, this.tempRoute, { title: `${title}-${this.postForm.id}` })
+      const route = Object.assign({}, this.tempRoute, { title: `${title}-${this.postForm.id || '新日志'}` })
       this.$store.dispatch('tagsView/updateVisitedView', route)
     },
     setPageTitle() {
-      const title = '日志'
-      document.title = `${title} - ${this.postForm.id}`
+      const title = this.isEdit ? '编辑日志' : '新建日志'
+      document.title = `${title} - ${this.postForm.id || '新日志'}`
     },
     submitForm() {
       this.$refs.postForm.validate(valid => {
@@ -201,7 +227,7 @@ export default {
             // 返回列表页并强制刷新列表数据
             this.$router.push({ path: '/log/list', query: { refresh: new Date().getTime() }})
           }).catch(err => {
-            console.log(err)
+            console.error('提交日志失败:', err)
             this.loading = false
             this.$notify({
               title: '错误',
@@ -211,15 +237,18 @@ export default {
             })
           })
         } else {
-          console.log('提交错误!')
+          this.$message({
+            message: '请填写所有必填字段',
+            type: 'warning'
+          })
           return false
         }
       })
     },
     draftForm() {
-      if (this.postForm.content.length === 0 || this.postForm.title.length === 0) {
+      if (this.postForm.title.length === 0) {
         this.$message({
-          message: '请填写必要的标题和内容',
+          message: '请至少填写标题',
           type: 'warning'
         })
         return
@@ -228,7 +257,9 @@ export default {
       this.postForm.status = 'draft'
       const method = this.isEdit ? updateLog : createLog
       method(this.postForm).then(response => {
-        this.postForm.id = response.data.id
+        if (!this.isEdit) {
+          this.postForm.id = response.data.id
+        }
         this.$message({
           message: '保存草稿成功',
           type: 'success',
@@ -236,8 +267,10 @@ export default {
           duration: 1000
         })
         this.loading = false
+        // 设置tagsview标题
+        this.setTagsViewTitle()
       }).catch(err => {
-        console.log(err)
+        console.error('保存草稿失败:', err)
         this.loading = false
         this.$notify({
           title: '错误',
@@ -246,6 +279,15 @@ export default {
           duration: 2000
         })
       })
+    },
+    cancelForm() {
+      this.$confirm('确定要取消编辑吗？未保存的内容将丢失', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$router.push('/log/list')
+      }).catch(() => {})
     }
   }
 }
@@ -276,13 +318,6 @@ export default {
       margin-bottom: 10px;
       font-weight: 500;
     }
-  }
-
-  .word-counter {
-    width: 40px;
-    position: absolute;
-    right: 10px;
-    top: 0px;
   }
 }
 </style>

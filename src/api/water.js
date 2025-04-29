@@ -18,8 +18,8 @@ export function createItem(data) {
 
 export function updateItem(data) {
   return request({
-    url: '/api/water/update',
-    method: 'post',
+    url: `/api/water/update/${data.id}`,
+    method: 'put',
     data
   })
 }

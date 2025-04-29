@@ -96,11 +96,13 @@ module.exports = [
   },
 
   {
-    url: '/api/water/update',
-    type: 'post',
+    url: '/api/water/update/\\d+',
+    type: 'put',
     response: config => {
+      const id = parseInt(config.url.match(/\/api\/water\/update\/(\d+)/)[1])
       const data = config.body
-      const index = List.findIndex(item => item.id === data.id)
+      console.log('接收到的更新请求数据:', data, '请求ID:', id) // 添加日志，帮助调试
+      const index = List.findIndex(item => item.id === id)
 
       if (index !== -1) {
         // 保持时间顺序，不允许修改时间早于前一条记录或晚于后一条记录
@@ -110,11 +112,19 @@ module.exports = [
 
         if (newTime >= prevTime && newTime <= nextTime) {
           List[index] = { ...List[index], ...data }
+          console.log('更新成功，更新后的数据:', List[index]) // 添加日志，确认更新成功
         } else {
+          console.log('更新失败：时间范围错误') // 添加日志，记录失败原因
           return {
             code: 40000,
             message: '修改后的时间必须介于前后记录时间之间'
           }
+        }
+      } else {
+        console.log('更新失败：未找到ID为', id, '的记录') // 添加日志，记录失败原因
+        return {
+          code: 40001,
+          message: '未找到要更新的记录'
         }
       }
 

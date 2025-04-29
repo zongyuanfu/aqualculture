@@ -36,10 +36,15 @@ module.exports = [
     url: '/api/logs/',
     type: 'get',
     response: config => {
-      const { title, page = 1, limit = 20 } = config.query
+      const { title, operator_id, status, page = 1, limit = 20 } = config.query
 
       let mockList = List.filter(item => {
+        // 标题筛选
         if (title && item.title.indexOf(title) < 0) return false
+        // 操作员筛选
+        if (operator_id && parseInt(operator_id) !== item.operator_id) return false
+        // 状态筛选
+        if (status && status !== item.status) return false
         return true
       })
 
@@ -120,6 +125,11 @@ module.exports = [
         data.operator_name = op ? op.name : '未知'
 
         List[index] = data
+      } else {
+        return {
+          code: 50000,
+          message: '日志不存在'
+        }
       }
 
       return {
@@ -139,11 +149,15 @@ module.exports = [
 
       if (index !== -1) {
         List.splice(index, 1)
-      }
-
-      return {
-        code: 20000,
-        data: 'success'
+        return {
+          code: 20000,
+          data: 'success'
+        }
+      } else {
+        return {
+          code: 50000,
+          message: '日志不存在'
+        }
       }
     }
   },
