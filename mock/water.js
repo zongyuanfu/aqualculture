@@ -17,21 +17,21 @@ const generateOrderedDates = (count) => {
 
 const orderedDates = generateOrderedDates(count)
 
-// 生成更真实的水质数据范围
+// 生成水质数据范围，所有数据都在正常范围内
 for (let i = 0; i < count; i++) {
   List.push({
     id: i + 1,
     timestamp: orderedDates[i],
-    // 溶解氧（mg/L）：4-8是比较理想的范围
-    oxygen: Mock.mock('@float(4, 8, 1, 2)'),
-    // pH值：6.5-8.5是最适合养殖的范围
+    // 溶解氧（mg/L）：前端阈值要求 ≥ 5 mg/L
+    oxygen: Mock.mock('@float(5, 8, 1, 2)'),
+    // pH值：前端阈值要求 6.5-8.5
     ph: Mock.mock('@float(6.5, 8.5, 1, 2)'),
     // 水温（°C）：22-28是理想范围
     temperature: Mock.mock('@float(22, 28, 1, 1)'),
-    // COD（mg/L）：20-40是较好的范围
-    cod: Mock.mock('@float(20, 40, 1, 1)'),
-    // 电导率（μS/cm）：200-400是淡水养殖的理想范围
-    conductivity: Mock.mock('@float(200, 400, 1, 1)'),
+    // COD（mg/L）：前端阈值要求 ≤ 20 mg/L
+    cod: Mock.mock('@float(10, 20, 1, 1)'),
+    // 电导率（μS/cm）：前端阈值要求 100-1000 μS/cm
+    conductivity: Mock.mock('@float(100, 1000, 1, 1)'),
     // 余氯（mg/L）：0.2-0.5是安全范围
     chlorine: Mock.mock('@float(0.2, 0.5, 1, 2)'),
     // 氨氮（mg/L）：0.2-1.0是安全范围

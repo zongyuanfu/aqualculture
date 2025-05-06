@@ -4,23 +4,26 @@ const { asyncRoutes, constantRoutes } = require('./routes.js')
 
 const routes = deepClone([...constantRoutes, ...asyncRoutes])
 
-const roles = [
+const users = [
   {
-    key: 'admin',
-    name: 'admin',
-    description: 'Super Administrator. Have access to view all pages.',
+    id: 1,
+    username: 'admin',
+    password: 'admin123',
+    role: 'admin',
     routes: routes
   },
   {
-    key: 'editor',
-    name: 'editor',
-    description: 'Normal Editor. Can see all pages except permission page',
-    routes: routes.filter(i => i.path !== '/permission')// just a mock
+    id: 2,
+    username: 'operator1',
+    password: 'operator123',
+    role: 'operator',
+    routes: routes.filter(i => i.path !== '/permission')// 操作员无权限页面权限
   },
   {
-    key: 'visitor',
-    name: 'visitor',
-    description: 'Just a visitor. Can only see the home page and the document page',
+    id: 3,
+    username: 'operator2',
+    password: 'operator123',
+    role: 'operator',
     routes: [{
       path: '',
       redirect: 'dashboard',
@@ -38,7 +41,7 @@ const roles = [
 module.exports = [
   // mock get all routes form server
   {
-    url: '/vue-element-admin/routes',
+    url: '/api/routes/',
     type: 'get',
     response: _ => {
       return {
@@ -48,33 +51,33 @@ module.exports = [
     }
   },
 
-  // mock get all roles form server
+  // mock get all users form server
   {
-    url: '/vue-element-admin/roles',
+    url: '/api/users/',
     type: 'get',
     response: _ => {
       return {
         code: 20000,
-        data: roles
+        data: users
       }
     }
   },
 
-  // add role
+  // add user
   {
-    url: '/vue-element-admin/role',
+    url: '/api/users/',
     type: 'post',
     response: {
       code: 20000,
       data: {
-        key: Mock.mock('@integer(300, 5000)')
+        id: Mock.mock('@integer(300, 5000)')
       }
     }
   },
 
-  // update role
+  // update user
   {
-    url: '/vue-element-admin/role/[A-Za-z0-9]',
+    url: '/api/users/[0-9]+/',
     type: 'put',
     response: {
       code: 20000,
@@ -84,9 +87,9 @@ module.exports = [
     }
   },
 
-  // delete role
+  // delete user
   {
-    url: '/vue-element-admin/role/[A-Za-z0-9]',
+    url: '/api/users/[0-9]+/',
     type: 'delete',
     response: {
       code: 20000,
