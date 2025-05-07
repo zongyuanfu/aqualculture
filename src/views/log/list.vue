@@ -40,7 +40,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column width="180px" align="center" label="创建时间">
+      <el-table-column width="200px" align="center" label="创建时间">
         <template slot-scope="scope">
           <span>{{ scope.row.created_at | parseTime('{y}-{m}-{d} {h}:{i}') }}</span>
         </template>
@@ -60,7 +60,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column min-width="300px" label="报告标题">
+      <el-table-column width="450px" label="报告标题">
         <template slot-scope="{row}">
           <router-link :to="'/log/edit/'+row.id" class="link-type">
             <span class="log-title">{{ row.title }}</span>
@@ -74,7 +74,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column align="center" label="操作" width="230">
+      <el-table-column align="center" label="操作" width="350">
         <template slot-scope="scope">
           <router-link :to="'/log/edit/'+scope.row.id">
             <el-button type="primary" size="small" icon="el-icon-edit">
@@ -85,6 +85,7 @@
             size="small"
             type="success"
             icon="el-icon-view"
+            style="margin-left: 8px"
             @click="handlePreview(scope.row)"
           >
             预览

@@ -64,6 +64,15 @@ export default {
     setOptions({ expectedData, actualData } = {}) {
       const xAxisData = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
 
+      // 处理实际值数据，为最后一个点设置为null以省略最后一段连线
+      const processedActualData = actualData ? actualData.map((value, index) => {
+        // 如果是最后一个点，设置为null以省略最后一段连线
+        if (index === actualData.length - 1) {
+          return null
+        }
+        return value
+      }) : []
+
       this.chart.setOption({
         xAxis: {
           data: xAxisData,
@@ -127,7 +136,7 @@ export default {
               }
             }
           },
-          data: actualData,
+          data: processedActualData,
           animationDuration: 2800,
           animationEasing: 'quadraticOut'
         }]

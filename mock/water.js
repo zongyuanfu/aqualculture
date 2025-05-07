@@ -25,19 +25,19 @@ for (let i = 0; i < count; i++) {
     // 溶解氧（mg/L）：前端阈值要求 ≥ 5 mg/L
     oxygen: Mock.mock('@float(5, 8, 1, 2)'),
     // pH值：前端阈值要求 6.5-8.5
-    ph: Mock.mock('@float(6.5, 8.5, 1, 2)'),
+    ph: Mock.mock('@float(7, 8, 1, 2)'),
     // 水温（°C）：22-28是理想范围
     temperature: Mock.mock('@float(22, 28, 1, 1)'),
     // COD（mg/L）：前端阈值要求 ≤ 20 mg/L
-    cod: Mock.mock('@float(10, 20, 1, 1)'),
+    cod: Mock.mock('@float(10, 19, 1, 1)'),
     // 电导率（μS/cm）：前端阈值要求 100-1000 μS/cm
-    conductivity: Mock.mock('@float(100, 1000, 1, 1)'),
+    conductivity: Mock.mock('@float(100, 999, 1, 1)'),
     // 余氯（mg/L）：0.2-0.5是安全范围
     chlorine: Mock.mock('@float(0.2, 0.5, 1, 2)'),
     // 氨氮（mg/L）：0.2-1.0是安全范围
-    nh3: Mock.mock('@float(0.2, 1.0, 1, 2)'),
+    nh3: Mock.mock('@float(0.2, 0.99, 1, 2)'),
     // 浊度（NTU）：5-10是可接受范围
-    turbidity: Mock.mock('@float(5, 10, 1, 2)')
+    turbidity: Mock.mock('@float(5, 9, 1, 2)')
   })
 }
 

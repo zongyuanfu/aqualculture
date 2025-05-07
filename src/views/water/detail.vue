@@ -70,14 +70,14 @@
       style="width: 100%;"
       size="small"
     >
-      <el-table-column label="ID" align="center" width="80">
+      <el-table-column label="ID" align="center" width="60">
         <template #default="{ row }">
           <span>{{ row.id }}</span>
         </template>
       </el-table-column>
 
       <!-- 溶解氧 -->
-      <el-table-column label="溶解氧 (mg/L)" width="110" align="center">
+      <el-table-column label="溶解氧 (mg/L)" width="100" align="center">
         <template #default="{ row }">
           <el-tag :type="getStatus('oxygen', row.oxygen)">
             {{ row.oxygen }}
@@ -86,7 +86,7 @@
       </el-table-column>
 
       <!-- pH 值 -->
-      <el-table-column label="pH 值" width="110" align="center">
+      <el-table-column label="pH 值" width="80" align="center">
         <template #default="{ row }">
           <el-tag :type="getStatus('ph', row.ph)">
             {{ row.ph }}
@@ -144,12 +144,12 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="记录时间" width="110" align="center">
+      <el-table-column label="记录时间" width="130" align="center">
         <template #default="{ row }">
           <span>{{ row.timestamp | parseTime('{y}-{m}-{d} {h}:{i}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="300" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="200" class-name="small-padding fixed-width">
         <template #default="{ row }">
           <el-button type="primary" size="mini" @click="handleUpdate(row)">编辑</el-button>
           <el-button v-if="row.status !== 'deleted'" size="mini" type="danger" @click="handleDelete(row)">删除</el-button>
@@ -254,11 +254,11 @@ export default {
       // 报警阈值设置
       thresholds: {
         oxygen: { min: 5 }, // 溶解氧 ≥ 5 mg/L
-        ph: { min: 6.5, max: 8.5 }, // pH 6.5–8.5
+        ph: { min: 6.5, max: 9 }, // pH 6.5–8.5
         temperature: { min: 22, max: 28 }, // 水温 22-28°C
         cod: { max: 20 }, // COD ≤ 20 mg/L
         conductivity: { min: 100, max: 1000 }, // 电导率 100–1000 μS/cm
-        chlorine: { min: 0.2, max: 0.5 }, // 余氯 0.2-0.5 mg/L
+        chlorine: { min: 0, max: 1 }, // 余氯 0.2-0.5 mg/L
         nh3: { max: 1.0 }, // 氨氮 ≤ 1.0 mg/L
         turbidity: { min: 5, max: 10 } // 浊度 5-10 NTU
       },
