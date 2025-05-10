@@ -197,13 +197,26 @@
 
         <el-row :gutter="20">
           <el-col :span="12">
+            <el-form-item label="水温" prop="temperature">
+              <el-input v-model="temp.temperature" placeholder="°C" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
             <el-form-item label="氯含量" prop="chlorine">
               <el-input v-model="temp.chlorine" placeholder="mg/L" />
             </el-form-item>
           </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="氨氮浓度" prop="nh3">
               <el-input v-model="temp.nh3" placeholder="mg/L" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="浊度" prop="turbidity">
+              <el-input v-model="temp.turbidity" placeholder="NTU" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -275,6 +288,7 @@ export default {
         ph: '',
         cod: '',
         conductivity: '',
+        temperature: '',
         chlorine: '',
         nh3: '',
         turbidity: '',
@@ -288,6 +302,7 @@ export default {
         ph: [{ required: true, message: 'pH值不能为空', trigger: 'blur' }],
         cod: [{ required: true, message: '化学需氧量不能为空', trigger: 'blur' }],
         conductivity: [{ required: true, message: '电导率不能为空', trigger: 'blur' }],
+        temperature: [{ required: true, message: '水温不能为空', trigger: 'blur' }],
         chlorine: [{ required: true, message: '氯含量不能为空', trigger: 'blur' }],
         nh3: [{ required: true, message: '氨氮浓度不能为空', trigger: 'blur' }],
         turbidity: [{ required: true, message: '浊度不能为空', trigger: 'blur' }],
@@ -393,7 +408,7 @@ export default {
       this.getList()
     },
     resetTemp() {
-      this.temp = { id: undefined, oxygen: '', ph: '', cod: '', conductivity: '', chlorine: '', nh3: '', turbidity: '', timestamp: new Date() }
+      this.temp = { id: undefined, oxygen: '', ph: '', cod: '', conductivity: '', temperature: '', chlorine: '', nh3: '', turbidity: '', timestamp: new Date() }
     },
     handleCreate() {
       this.resetTemp()
